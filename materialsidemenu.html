@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>material side menu</title>
+	<style>
+		.mobile {
+			width: 300px;
+			height: 450px;
+			border: 1px solid #999;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+		svg .menu {
+			stroke: #000;
+			stroke-width: 5;
+		}
+	</style>
+</head>
+<body>
+
+<div class="mobile">
+	<svg width="300" height="450">
+		<path class="menu" d="M0,0 L60,0 a0,255 0,0 1 0,450 L0,450"></path>
+	</svg>
+</div>
+
+<script>
+let menu = document.querySelector('.menu')
+let curve = 0, direction
+let setPath = (x, curve) => {
+	direction = curve <= 0 ? 0 : 1
+	let path = `M0,0 L${x},0 a${curve},255 0,0 ${direction} 0,450 L0,450`
+	return path
+}
+
+function easeOutElastic(t, b, c, d) {
+  var s=1.70158;var p=0;var a=c;
+  if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+  if (a < Math.abs(c)) { a=c; var s=p/4; }
+  else var s = p/(2*Math.PI) * Math.asin (c/a);
+  return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+}
+function animate() {
+	let duration = 1000
+	let frameRate = 60 / 1000
+	let totalFrames = duration * frameRate
+	let currentFrame = 0
+	let endX = 200
+	let newX, newCurve
+	function animatePath() {
+		currentFrame++
+		newX = easeOutElastic(currentFrame, 60, endX - 60, totalFrames)
+		newCurve = easeOutElastic(currentFrame, curve, 0 - curve, totalFrames)
+		menu.setAttribute('d', setPath(newX, newCurve))
+		if(currentFrame > totalFrames) return // stops animation
+		requestAnimationFrame(animatePath)
+	}
+	animatePath()
+}
+menu.addEventListener('mousedown', e => {
+	let startX = e.pageX
+	//console.log(startX)
+	document.addEventListener('mousemove', move)
+	document.addEventListener('mouseup', () => {
+		document.removeEventListener('mousemove', move)
+		animate()
+	})
+	function move(e){
+		let currentx = e.pageX
+		let diff = currentx - startX
+		//console.log(diff)
+		if (diff < 0 ) diff = 0
+		else if (diff > 300) diff = 300
+		curve = diff/2
+		menu.setAttribute('d', setPath(60, curve))
+	}
+})
+</script>
+
+</body>
+</html>
